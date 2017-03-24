@@ -1,4 +1,4 @@
-# CSCI4830-Fire-Spreading
+# CSCI4830/ECEN4313-Fire-Spreading
 Multi-threaded simulation of the semi-random spread of fire.
 Authors: Chase Heck, Clint Olsen
 
