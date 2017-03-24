@@ -3,7 +3,9 @@
  * 
 
  */
- 
+
+import java.util.Scanner;
+
 public class MapBuildTest implements Runnable{
 
 	
@@ -13,12 +15,30 @@ public class MapBuildTest implements Runnable{
 	//Density argument: 1: low, 2: mid, 3: high
 
 
-	public static int height = 40;
-	public static int width = 40;
-	public static int density = 2;	
+	public static int height;
+	public static int width;
+	public static int density;	
 	
-	public static Map m = new Map(height, width, density);
+	public static Map m;
 
+	public MapBuildTest(){
+
+		Scanner input=new Scanner(System.in);
+		int selection = input.nextInt();
+		input.nextLine();
+		if (selection == 1){
+			System.out.printf("Enter height and width: ");
+
+			height = input.nextInt();
+			width= input.nextInt();
+
+			System.out.printf("Enter density: ");
+			density = input.nextInt();
+		}
+
+		m = new Map(height, width, density);
+	}
+	
 
 	public void run(){
 
@@ -39,9 +59,14 @@ public class MapBuildTest implements Runnable{
 
 		//m.testEdges();
 
+		
+
+		//int thread_size = 8;
+
 		m.startFire(height/2, width/2);
 
-	
+		
+
 		// declare object to hold the threads
 
 		Thread t = new Thread();
@@ -50,6 +75,14 @@ public class MapBuildTest implements Runnable{
 		t.start();
 
 		// create each thread and start it
+
+		/*for (int i = 0; i < thread_size; i++) {
+
+			t[i] = new Thread(new MapBuildTest());
+
+			t[i].start();
+
+		}*/
 
 		// join each thread to halt the process of the main thread until all
 

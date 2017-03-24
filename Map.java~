@@ -19,7 +19,7 @@ public class Map {
 	private FireNode m[][];
 
 	public FireNode epicenter;
-		
+
 	int treeDensity;
 
 	Random rand = new Random();
@@ -58,7 +58,7 @@ public class Map {
 
 				if(treeDensity == 1){
 
-					if(n > 65){
+					if(n > 80){
 
 						m[i][j].hasTree = true;
 
@@ -123,9 +123,6 @@ public class Map {
 		epicenter = m[row][column];
 	}
 	
-	public void fireUpdate(FireNode current){
-		epicenter = current;
-	}
 
 	//start propagation
 
@@ -143,14 +140,13 @@ public class Map {
 
 		for (int i = 0; i < 4; i++){
 
-			if(i == 0 && current.north != null && current.north.hasTree == true && current.north.onFire == false){
+			if(i == 0 && current.north.onFire == false && current.north != null && current.north.hasTree == true){
 
 				//pred = current;
 
 				//current = current.north;
 
 				current.north.onFire = true;
-				
 
 				l.lock();
 
@@ -163,14 +159,12 @@ public class Map {
 					l.unlock();
 
 				}
-				
-				ThreadNode tn = new ThreadNode(current.north, this);
-				tn.main(null);
-				
-			}
-				
 
-			else if(i == 1 && current.west != null && current.west.hasTree == true && current.west.onFire == false){
+
+
+			}
+
+			else if(i == 1 && current.west.onFire == false && current.west != null && current.west.hasTree == true){
 
 				//pred = current;
 
@@ -190,12 +184,11 @@ public class Map {
 
 				}
 
-				ThreadNode tn = new ThreadNode(current.west, this);
-				tn.main(null);
+
 
 			}
 
-			else if(i == 2 && current.south != null && current.south.hasTree == true && current.south.onFire == false){
+			else if(i == 2 && current.south.onFire == false && current.south != null && current.south.hasTree == true){
 
 				//pred = current;
 
@@ -215,12 +208,10 @@ public class Map {
 
 				}
 
-				ThreadNode tn = new ThreadNode(current.south, this);
-				tn.main(null);
 
 
 			}
-			else if(i == 3 && current.east != null && current.east.hasTree == true && current.east.onFire == false){
+			else if(i == 3 && current.east.onFire == false && current.east != null && current.east.hasTree == true){
 
 				//pred = current;
 
@@ -239,11 +230,13 @@ public class Map {
 					l.unlock();
 
 				}
-				
-				ThreadNode tn = new ThreadNode(current.east, this);
-				tn.main(null);
+
+
+
 			}
 		}
+
+
 	}
 
 	
@@ -457,6 +450,7 @@ public class Map {
 		}
 
 	}
+
 
 
 }
