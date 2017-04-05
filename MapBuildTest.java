@@ -6,15 +6,12 @@
  
 public class MapBuildTest implements Runnable{
 
-	
-
 	//build the map
 
 	//Density argument: 1: low, 2: mid, 3: high
 
-
-	public static int height = 40;
-	public static int width = 40;
+	public static int height = 200;
+	public static int width = 200;
 	public static int density = 2;	
 	
 	public static Map m = new Map(height, width, density);
@@ -66,8 +63,6 @@ public class MapBuildTest implements Runnable{
 				System.out.println("Interrupted Exception Caught");
 
 			}
-
-
 
 		}
 

@@ -1,14 +1,23 @@
 import java.util.Random;
-
 import java.lang.Thread;
+import javax.swing.*;
+import java.awt.*;
+
 
 import java.util.concurrent.locks.Lock;
 
 import java.util.concurrent.locks.ReentrantLock;
 
+import javax.swing.JFrame;
 
 
-public class Map {
+
+public class Map extends JPanel{
+	
+	//Declare JPanel for GUI
+	static JFrame frame = new JFrame("Map");
+    public static final int PREFERRED_GRID_SIZE_PIXELS = 10;
+
 
 	public int rows;
 
@@ -61,7 +70,11 @@ public class Map {
 					if(n > 65){
 
 						m[i][j].hasTree = true;
+						m[i][j].c = new Color(0,255,0); //Green for a Tree
 
+					}
+					else{
+						m[i][j].c = new Color(153,102,0); //Brown for no Tree
 					}
 
 				}
@@ -73,7 +86,11 @@ public class Map {
 					if(n > 40){
 
 						m[i][j].hasTree = true;
+						m[i][j].c = new Color(0,255,0); //Green for a Tree
 
+					}
+					else{
+						m[i][j].c = new Color(153,102,0); //Brown for no Tree
 					}
 
 				}
@@ -85,7 +102,11 @@ public class Map {
 					if(n > 10){
 
 						m[i][j].hasTree = true;
+						m[i][j].c = new Color(0,255,0); //Green for a Tree
 
+					}
+					else{
+						m[i][j].c = new Color(153,102,0); //Brown for no Tree
 					}
 
 				}
@@ -97,25 +118,33 @@ public class Map {
 					if(n > 50){
 
 						m[i][j].hasTree = true;
+						m[i][j].c = new Color(0,255,0); //Green for a Tree
 
+					}
+					else{
+						m[i][j].c = new Color(153,102,0); //Brown for no Tree
 					}
 
 				}
 
 			}
-
 		}
-
 		
+		//Initial Graphics screen setup
+		int preferredWidth = columns * PREFERRED_GRID_SIZE_PIXELS;
+		int preferredHeight = rows * PREFERRED_GRID_SIZE_PIXELS;
+		setPreferredSize(new Dimension(preferredWidth, preferredHeight));
+        frame.add(this);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.pack();
+        frame.setVisible(true);
 
 		//establish pointer connections to acknowledge edge cases
-
 		linker();
 
 	}
 
 	
-
 	//set fire starting point
 
 	public void startFire(int row, int column){
@@ -150,13 +179,19 @@ public class Map {
 				//current = current.north;
 
 				current.north.onFire = true;
+				current.north.c  = new Color(255,0,0); //Orange red for fire
+				
 				
 
 				l.lock();
 
 				try{
-
-					printTreeMap();
+					//print map on graphics display
+					frame.invalidate();
+					frame.validate();
+					frame.repaint();
+					
+					//printTreeMap();
 
 				}finally{
 
@@ -177,12 +212,19 @@ public class Map {
 				//current = current.north;
 
 				current.west.onFire = true;
+				current.west.c  = new Color(255,0,0); //Orange red for fire
+				
+
 
 				l.lock();
 
 				try{
-
-					printTreeMap();
+					//print map on graphics display
+					frame.invalidate();
+					frame.validate();
+					frame.repaint();
+					
+					//printTreeMap();
 
 				}finally{
 
@@ -202,12 +244,17 @@ public class Map {
 				//current = current.north;
 
 				current.south.onFire = true;
-
+				current.south.c  = new Color(255,0,0); //Orange red for fire
+				
 				l.lock();
 
 				try{
-
-					printTreeMap();
+					//print map on graphics display
+					frame.invalidate();
+					frame.validate();
+					frame.repaint();
+					
+					//printTreeMap();
 
 				}finally{
 
@@ -227,12 +274,18 @@ public class Map {
 				//current = current.north;
 
 				current.east.onFire = true;
+				current.east.c  = new Color(255,0,0); //Orange red for fire
+
 
 				l.lock();
 
 				try{
+					//print map on graphics display
+					frame.invalidate();
+					frame.validate();
+					frame.repaint();
 
-					printTreeMap();
+					//printTreeMap();
 
 				}finally{
 
@@ -285,6 +338,28 @@ public class Map {
 		System.out.println();
 
 	}
+	
+    @Override
+    public void paintComponent(Graphics g) {
+        // Important to call super class method
+        super.paintComponent(g);
+        // Clear the board
+        g.clearRect(0, 0, getWidth(), getHeight());
+        // Draw the grid
+        int rectWidth = getWidth() / columns;
+        int rectHeight = getHeight() / rows;
+        
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < columns; j++) {
+                // Upper left corner of this terrain rect
+                int x = i * rectWidth;
+                int y = j * rectHeight;
+                Color terrainColor = m[i][j].c;
+                g.setColor(terrainColor);
+                g.fillRect(x, y, rectWidth, rectHeight);
+            }
+        }
+    }
 
 
 
