@@ -8,6 +8,8 @@ public class FireNode {
 	FireNode south;
 	FireNode east;
 	FireNode west;
+	public int row;
+	public int col;
 	
 	Color c;
 	

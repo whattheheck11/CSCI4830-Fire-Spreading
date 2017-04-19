@@ -1,5 +1,7 @@
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
-public class ThreadNode implements Runnable{
+public class ThreadNode{
 	
 	public static FireNode current;
 	public static Map m;
@@ -9,7 +11,14 @@ public class ThreadNode implements Runnable{
 		this.m = m;
 	}
 	
-	public void run(){
+	public void start(){
+		m.fireUpdate(current);
+		Thread t = new Thread(new MapBuildTest());
+		t.start();
+	}
+}
+	
+	/*public void run(){
 
 		m.startPropagation();
 
@@ -18,7 +27,7 @@ public class ThreadNode implements Runnable{
 	public static void main(String args[]) {
 		
 
-		//System.out.println("Initial Forest Map:");
+		//System.out.println("main");
 
 		//m.printTreeMap();
 		
@@ -26,12 +35,12 @@ public class ThreadNode implements Runnable{
 
 		// declare object to hold the threads
 
-		Thread t = new Thread();
+		Thread t = new Thread(new MapBuildTest());
 
-		t = new Thread(new MapBuildTest());
+		//t = new Thread(new MapBuildTest());
 		t.start();
 
-		for (int i = 0; i < 1; i++) {
+		/*for (int i = 0; i < 1; i++) {
 
 			try {
 
@@ -45,9 +54,4 @@ public class ThreadNode implements Runnable{
 
 		}
 
- 	}
-	
-	
-	
-	
-}
+ 	}*/
