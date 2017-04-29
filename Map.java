@@ -47,6 +47,10 @@ public class Map extends JPanel implements MouseListener{
 	public int columns;
 	
 	public char wind;
+	
+	public int humidity;
+	
+	boolean windExists;
 
 	public int perimeterNodes;
 
@@ -59,12 +63,15 @@ public class Map extends JPanel implements MouseListener{
 	Random rand = new Random();
 
 	static Lock l = new ReentrantLock();
+	
+	public int probBurnOp = 100;
 
+	public int probBurnSide = 70;
 
 
 	//constructor
 
-	public Map(int height, int width, int density, char windDir){
+	public Map(int height, int width, int density, char windDir, char getHumidity){
 		
         addMouseListener(this); //for mouse click events
         
@@ -77,6 +84,32 @@ public class Map extends JPanel implements MouseListener{
 		treeDensity = density;
 
 		m = new FireNode[rows][columns];
+		
+		if (wind == 'n' || wind == 's' || wind == 'e' || wind == 'w') {
+        	windExists = true;
+        } else windExists = false;
+        
+        //Get humidity and allocate probability
+        if (getHumidity == 'l') {
+
+			humidity = 30;
+			if (windExists == true){
+				humidity -= 20;
+			}
+
+		} else if (getHumidity == 'm') {
+
+			humidity = 85;
+			if (windExists == true){
+				humidity -= 55;
+			}
+
+		} else {
+			humidity = 95;
+			if (windExists == true){
+				humidity -= 50;
+			}
+		}
 
 		for(int i = 0; i < rows; i ++){
 
@@ -193,23 +226,27 @@ public class Map extends JPanel implements MouseListener{
             if(i == 0 && current.north != null && current.north.hasTree == true && current.north.onFire == false){
                         
             	//generate random number for the wind influence
-                int n = rand.nextInt(100)+1;
+                int n = rand.nextInt(200)+1;
                 
                 if (wind == 'n') {
                     if(current.north.l.tryLock()){
                     	try{
-		                    current.north.onFire = true;
-		                    current.north.c  = new Color(255,0,0); //Orange red for fire
-		                    		                    
-		                    //print map on graphics display
-		                    l.lock();
-		                    try{
-		                    	frame.invalidate();
-		                    	frame.validate();
-		                    	frame.repaint();
-		                    }finally{
-		                    	l.unlock();
-		                    }
+							
+							if (n > humidity) {
+							
+								current.north.onFire = true;
+								current.north.c  = new Color(255,0,0); //Orange red for fire
+															
+								//print map on graphics display
+								l.lock();
+								try{
+									frame.invalidate();
+									frame.validate();
+									frame.repaint();
+								}finally{
+									l.unlock();
+								}
+							}
 		                    
                     	}finally{
                     		//current.north.unlock();
@@ -220,7 +257,7 @@ public class Map extends JPanel implements MouseListener{
                     }
                 }
                 else if (wind == 's') {
-                    if (n > 70) {
+                    if (n > probBurnOp + humidity) {
                         if(current.north.l.tryLock()){
                         	try{
 		                        current.north.onFire = true;
@@ -247,7 +284,7 @@ public class Map extends JPanel implements MouseListener{
                 }
                 
                 else if (wind == 'e' || wind == 'w') {
-                    if (n > 35) {
+                    if (n > probBurnSide + humidity) {
                         if(current.north.l.tryLock()){
                         	try{
 		                        current.north.onFire = true;
@@ -274,62 +311,66 @@ public class Map extends JPanel implements MouseListener{
                 }
                 
                 else{
-                    if(current.north.l.tryLock()){
-                    	try{
-		                	 current.north.onFire = true;
-		                     current.north.c  = new Color(255,0,0); //Orange red for fire
-		                     
-		
-		                    //print map on graphics display
-		                    l.lock();
-		                    try{
-		                    	frame.invalidate();
-		                    	frame.validate();
-		                    	frame.repaint();
-		                    }finally{
-		                    	l.unlock();
-		                    }
-			                    
-                    	}finally{
-                    		//current.north.unlock();
-                    	}
-                         
-                    	ThreadNode tn = new ThreadNode(current.north, this);
-                    	tn.start();
-                    }
-                }
+					if (n > humidity) {
+						if(current.north.l.tryLock()){
+							try{
+								 current.north.onFire = true;
+								 current.north.c  = new Color(255,0,0); //Orange red for fire
+								 
+			
+								//print map on graphics display
+								l.lock();
+								try{
+									frame.invalidate();
+									frame.validate();
+									frame.repaint();
+								}finally{
+									l.unlock();
+								}
+									
+							}finally{
+								//current.north.unlock();
+							}
+							 
+							ThreadNode tn = new ThreadNode(current.north, this);
+							tn.start();
+						}
+					}
+				}
             }
                 
             else if(i == 1 && current.west != null && current.west.hasTree == true && current.west.onFire == false){
                 
-                int n = rand.nextInt(100)+1;
+                int n = rand.nextInt(200)+1;
                 
 	                if (wind == 'w') {
-	                    if(current.west.l.tryLock()){
-	                    	try{
-			                    current.west.onFire = true;
-			                    current.west.c  = new Color(255,0,0); //Orange red for fire
-			                    
-			                    //print map on graphics display
-			                    l.lock();
-			                    try{
-			                    	frame.invalidate();
-			                    	frame.validate();
-			                    	frame.repaint();
-			                    }finally{
-			                    	l.unlock();
-			                    }
-			                    
-	                    	}finally{
-	                    		//current.west.unlock();
-	                    	}
-	                    	ThreadNode tn = new ThreadNode(current.west, this);
-	                    	tn.start();
-	                    }
+						if (n > humidity) {
+							if(current.west.l.tryLock()){
+								try{
+									current.west.onFire = true;
+									current.west.c  = new Color(255,0,0); //Orange red for fire
+									
+									//print map on graphics display
+									l.lock();
+									try{
+										frame.invalidate();
+										frame.validate();
+										frame.repaint();
+									}finally{
+										l.unlock();
+									}
+									
+								}finally{
+									//current.west.unlock();
+								}
+								ThreadNode tn = new ThreadNode(current.west, this);
+								tn.start();
+							}
+						}
 	                }
 	                
 	                else if (wind == 'e') {
-	                    if (n > 70) {
+	                    if (n > probBurnOp + humidity) {
 		                	if(current.west.l.tryLock()){
 		                		try{
 			                        current.west.onFire = true;
@@ -356,7 +397,7 @@ public class Map extends JPanel implements MouseListener{
 	                }
 	                
 	                else if (wind == 'n' || wind == 's') {
-	                    if (n > 35) {
+	                    if (n > probBurnSide + humidity) {
 		                    if(current.west.l.tryLock()){
 		                    	try{
 			                        current.west.onFire = true;
@@ -382,61 +423,65 @@ public class Map extends JPanel implements MouseListener{
 	                }
 	                
 	                else{
-	                    if(current.west.l.tryLock()){
-	                    	try{
-			                	current.west.onFire = true;
-			                    current.west.c  = new Color(255,0,0); //Orange red for fire
-			                    
-			                    //print map on graphics display
-			                    l.lock();
-			                    try{
-			                    	frame.invalidate();
-			                    	frame.validate();
-			                    	frame.repaint();
-			                    }finally{
-			                    	l.unlock();
-			                    }
-			                    
-	                    	}finally{
-	                    		//current.west.unlock();
-	                    	}
-	                        
-	                    	ThreadNode tn = new ThreadNode(current.west, this);
-	                    	tn.start();
-	                    }
+						if (n > humidity) {
+							if(current.west.l.tryLock()){
+								try{
+									current.west.onFire = true;
+									current.west.c  = new Color(255,0,0); //Orange red for fire
+									
+									//print map on graphics display
+									l.lock();
+									try{
+										frame.invalidate();
+										frame.validate();
+										frame.repaint();
+									}finally{
+										l.unlock();
+									}
+									
+								}finally{
+									//current.west.unlock();
+								}
+								
+								ThreadNode tn = new ThreadNode(current.west, this);
+								tn.start();
+							}
+						}
 	                }
             	} 
         
         else if(i == 2 && current.south != null && current.south.hasTree == true && current.south.onFire == false){
         	
-            int n = rand.nextInt(100)+1;
+            int n = rand.nextInt(200)+1;
               	
             if (wind == 's') {
-                if(current.south.l.tryLock()){
-                	try{ 
-		                current.south.onFire = true;
-		                current.south.c  = new Color(255,0,0); //Orange red for fire
-		
-	                    //print map on graphics display
-	                    l.lock();
-	                    try{
-	                    	frame.invalidate();
-	                    	frame.validate();
-	                    	frame.repaint();
-	                    }finally{
-	                    	l.unlock();
-	                    }
-	                    
-                	}finally{
-                		//current.south.unlock();
-                	}          
-                	ThreadNode tn = new ThreadNode(current.south, this);
-                	tn.start();
-                }
+				if (n > humidity){
+					if(current.south.l.tryLock()){
+						try{ 
+							current.south.onFire = true;
+							current.south.c  = new Color(255,0,0); //Orange red for fire
+			
+							//print map on graphics display
+							l.lock();
+							try{
+								frame.invalidate();
+								frame.validate();
+								frame.repaint();
+							}finally{
+								l.unlock();
+							}
+							
+						}finally{
+							//current.south.unlock();
+						}          
+						ThreadNode tn = new ThreadNode(current.south, this);
+						tn.start();
+					}
+				}
             }
             
             else if (wind == 'n') {
-                if (n > 70) {
+                if (n > probBurnOp + humidity) {
                     if(current.south.l.tryLock()){
                     	try{ 
 		                    current.south.onFire = true;
@@ -463,7 +508,7 @@ public class Map extends JPanel implements MouseListener{
            }
             
             else if (wind == 'e' || wind == 'w') {
-                if (n > 35) {
+                if (n > probBurnSide + humidity) {
                     if(current.south.l.tryLock()){
                     	try{ 
 		                    current.south.onFire = true;
@@ -489,61 +534,65 @@ public class Map extends JPanel implements MouseListener{
                 }
             }
             else{
-                if(current.south.l.tryLock()){
-                	try{ 
-		            	 current.south.onFire = true;
-		                 current.south.c  = new Color(255,0,0); //Orange red for fire
-		                 
-		                    //print map on graphics display
-		                    l.lock();
-		                    try{
-		                    	frame.invalidate();
-		                    	frame.validate();
-		                    	frame.repaint();
-		                    }finally{
-		                    	l.unlock();
-		                    }
-		                    
-                	}finally{
-                		//current.south.unlock();
-                	}
-                     
-                	ThreadNode tn = new ThreadNode(current.south, this);
-                	tn.start();
-                }
+				if (n > humidity) {
+					if(current.south.l.tryLock()){
+						try{ 
+							 current.south.onFire = true;
+							 current.south.c  = new Color(255,0,0); //Orange red for fire
+							 
+								//print map on graphics display
+								l.lock();
+								try{
+									frame.invalidate();
+									frame.validate();
+									frame.repaint();
+								}finally{
+									l.unlock();
+								}
+								
+						}finally{
+							//current.south.unlock();
+						}
+						 
+						ThreadNode tn = new ThreadNode(current.south, this);
+						tn.start();
+					}
+				}
             }
         }
             
 	    else if(i == 3 && current.east != null && current.east.hasTree == true && current.east.onFire == false){
 	            
-	            int n = rand.nextInt(100)+1;
+	            int n = rand.nextInt(200)+1;
                 if (wind == 'e') {
-    	            if(current.east.l.tryLock()){
-    	            	try{
-		                    current.east.onFire = true;
-		                    current.east.c  = new Color(255,0,0); //Orange red for fire
-		                    
-		                    //print map on graphics display
-		                    l.lock();
-		                    try{
-		                    	frame.invalidate();
-		                    	frame.validate();
-		                    	frame.repaint();
-		                    }finally{
-		                    	l.unlock();
-		                    }
-		                    
-    	            	}finally{
-    	            		//current.east.unlock();
-    	            	}
-                    
-    	            	ThreadNode tn = new ThreadNode(current.east, this);
-    	            	tn.start();
-    	            }
+					if (n > humidity) {
+						if(current.east.l.tryLock()){
+							try{
+								current.east.onFire = true;
+								current.east.c  = new Color(255,0,0); //Orange red for fire
+								
+								//print map on graphics display
+								l.lock();
+								try{
+									frame.invalidate();
+									frame.validate();
+									frame.repaint();
+								}finally{
+									l.unlock();
+								}
+								
+							}finally{
+								//current.east.unlock();
+							}
+						
+							ThreadNode tn = new ThreadNode(current.east, this);
+							tn.start();
+						}
+					}
                 }
                 
                 else if (wind == 'w'){
-                    if (n > 70) {
+                    if (n > probBurnOp + humidity) {
         	            if(current.east.l.tryLock()){
         	            	try{
 		                        current.east.onFire = true;
@@ -569,7 +618,7 @@ public class Map extends JPanel implements MouseListener{
                     }
                 }
                 else if (wind == 'n' || wind == 's') {
-                    if (n > 35) {
+                    if (n > probBurnSide + humidity) {
         	            if(current.east.l.tryLock()){
         	            	try{
 		                        current.east.onFire = true;
@@ -595,27 +644,29 @@ public class Map extends JPanel implements MouseListener{
                 }
                 
                 else{
-    	            if(current.east.l.tryLock()){
-    	            	try{
-		                    current.east.onFire = true;
-		                    current.east.c  = new Color(255,0,0); //Orange red for fire
-		
-		                    //print map on graphics display
-		                    l.lock();
-		                    try{
-		                    	frame.invalidate();
-		                    	frame.validate();
-		                    	frame.repaint();
-		                    }finally{
-		                    	l.unlock();
-		                    }
-    	            	}finally{
-    	            		//current.east.unlock();
-    	            	}
-                    
-    	            	ThreadNode tn = new ThreadNode(current.east, this);
-    	            	tn.start();
-    	            }
+					if (n > humidity) {
+						if(current.east.l.tryLock()){
+							try{
+								current.east.onFire = true;
+								current.east.c  = new Color(255,0,0); //Orange red for fire
+			
+								//print map on graphics display
+								l.lock();
+								try{
+									frame.invalidate();
+									frame.validate();
+									frame.repaint();
+								}finally{
+									l.unlock();
+								}
+							}finally{
+								//current.east.unlock();
+							}
+						
+							ThreadNode tn = new ThreadNode(current.east, this);
+							tn.start();
+						}
+					}
                 }
 	    	}       
 	    }	    
