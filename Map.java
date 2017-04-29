@@ -130,7 +130,7 @@ public class Map extends JPanel implements MouseListener{
 
 				if(treeDensity == 1){
 
-					if(n > 40){
+					if(n > 15){
 
 						m[i][j].hasTree = true;
 						m[i][j].c = new Color(0,255,0); //Green for a Tree
@@ -146,7 +146,7 @@ public class Map extends JPanel implements MouseListener{
 
 				else if(treeDensity == 2){
 
-					if(n > 25){
+					if(n > 10){
 
 						m[i][j].hasTree = true;
 						m[i][j].c = new Color(0,255,0); //Green for a Tree
@@ -162,7 +162,7 @@ public class Map extends JPanel implements MouseListener{
 
 				else if(treeDensity == 3){
 
-					if(n > 10){
+					if(n > 5){
 
 						m[i][j].hasTree = true;
 						m[i][j].c = new Color(0,255,0); //Green for a Tree
