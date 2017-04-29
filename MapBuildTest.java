@@ -12,7 +12,7 @@ public class MapBuildTest implements Runnable{
 	public static int density = 3;
 	
 	//Wind argument (blowing these directions): 'n' - north, 's' - south, 'e' - east, 'w' - west, none otherwise.
-	public static char wind = 'w';
+	public static char wind = 'o';
 	public static int windIntensity = 2; //0: none 1: low, 2: mid, 3: high
 
 	

@@ -16,11 +16,12 @@ public class FireNode {
 	Boolean onFire;
 	int probabilityOfCatchingFire;
 	boolean hasTree;
-	private Lock l = new ReentrantLock();
+	public Lock l;
 
 	
 	public FireNode(){
 		onFire = false;
+		l = new ReentrantLock();
 	}
 	
 	public void lock(){
