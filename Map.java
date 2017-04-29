@@ -1,7 +1,3 @@
-/*Multithreading is working, but each thread dies after it burns its surroundings. It should continue burning until
-* it hits an edge
-*/
-
 import java.util.Random;
 import java.lang.Thread;
 import javax.swing.*;
@@ -94,7 +90,6 @@ public class Map extends JPanel implements MouseListener{
 				m[i][j].col = j;
 
 				
-
 				//determine whether this node houses a tree based on given density
 
 				int n = rand.nextInt(100)+1;
@@ -195,14 +190,14 @@ public class Map extends JPanel implements MouseListener{
         FireNode current = epicenter;
         FireNode pred = null;
     
-        //generate random direction
         //1:north 2:west 3:south 4:east
-        //int n = rand.nextInt(4)+1;
+        
         for (int i = 0; i < 4; i++){
             if(i == 0 && current.north != null && current.north.hasTree == true && current.north.onFire == false){
                 //pred = current;
                 //current = current.north;
                 
+            	//generate random number for the wind influence
                 int n = rand.nextInt(100)+1;
                 
                 if (wind == 'n') {

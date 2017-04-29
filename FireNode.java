@@ -23,4 +23,11 @@ public class FireNode {
 		onFire = false;
 	}
 	
+	public void lock(){
+		l.lock();
+	}
+	public void unlock(){
+		l.unlock();
+	}
+	
 }

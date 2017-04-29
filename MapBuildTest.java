@@ -11,9 +11,9 @@ public class MapBuildTest implements Runnable{
 	public static int width = 100;
 	public static int density = 3;
 	
-	//Wind argument: 'n' - north, 's' - south, 'e' - east, 'w' - west, none otherwise.
-	public static char wind = 'o';
-	public static int windIntensity = 2; //1: low, 2: mid, 3: high
+	//Wind argument (blowing these directions): 'n' - north, 's' - south, 'e' - east, 'w' - west, none otherwise.
+	public static char wind = 'w';
+	public static int windIntensity = 2; //0: none 1: low, 2: mid, 3: high
 
 	
 	public static Map m = new Map(height, width, density, wind);
@@ -22,7 +22,7 @@ public class MapBuildTest implements Runnable{
 	
 
 	public void run(){
-			m.startPropagation();
+		m.startPropagation();
 	}
 
 	//main test function
