@@ -73,6 +73,8 @@ public class Map extends JPanel implements MouseListener{
 	public static long last = System.currentTimeMillis();
 	
 	public static long total;
+	
+	public static int counter;
 
 
 	//constructor
@@ -680,6 +682,7 @@ public class Map extends JPanel implements MouseListener{
         try {
         	total += (System.currentTimeMillis() - last);
         	last = System.currentTimeMillis();
+        	counter++;
         }finally {timeLock.unlock();}	    
 	}
 

@@ -38,6 +38,7 @@ public class MapBuildTest implements Runnable{
 		Runtime.getRuntime().addShutdownHook(new Thread() {
             public void run() {
                 System.out.println((float)m.total/(float)1000 + " seconds");
+                System.out.println(m.counter + " Threads Generated");
             }
         });
 		
