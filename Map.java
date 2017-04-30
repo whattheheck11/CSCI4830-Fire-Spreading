@@ -20,7 +20,7 @@ public class Map extends JPanel implements MouseListener{
 	public void mouseClicked(MouseEvent e) {
 	    int x = e.getX();
 	    int y = e.getY();
-	    //startFire(x,y);
+	    startFire(x/PREFERRED_GRID_SIZE_PIXELS,y/PREFERRED_GRID_SIZE_PIXELS);
 	    startPropagation();
 	    System.out.println("Mouse Clicked at X: " + x + " - Y: " + y);
 	}
@@ -723,10 +723,10 @@ public class Map extends JPanel implements MouseListener{
             for (int j = 0; j < columns; j++) {
                 // Upper left corner of this terrain rect
                 int x = i * rectWidth;
-                int y = j * rectHeight;
+                int y = j * (rectHeight+3);
                 Color terrainColor = m[i][j].c;
                 g.setColor(terrainColor);
-                g.fillRect(x, y, rectWidth, rectHeight);
+                g.fillRect(x, y, rectWidth, rectHeight+3);
             }
         }
     }
