@@ -64,9 +64,15 @@ public class Map extends JPanel implements MouseListener{
 
 	static Lock l = new ReentrantLock();
 	
+	static Lock timeLock = new ReentrantLock();
+	
 	public int probBurnOp = 100;
 
 	public int probBurnSide = 70;
+	
+	public static long last = System.currentTimeMillis();
+	
+	public static long total;
 
 
 	//constructor
@@ -669,7 +675,12 @@ public class Map extends JPanel implements MouseListener{
 					}
                 }
 	    	}       
-	    }	    
+	    }
+	    timeLock.lock();
+        try {
+        	total += (System.currentTimeMillis() - last);
+        	last = System.currentTimeMillis();
+        }finally {timeLock.unlock();}	    
 	}
 
 	//prints a 2D representation of the map

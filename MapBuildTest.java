@@ -35,6 +35,12 @@ public class MapBuildTest implements Runnable{
 
 	public static void main(String args[]) {
 		
+		Runtime.getRuntime().addShutdownHook(new Thread() {
+            public void run() {
+                System.out.println((float)m.total/(float)1000 + " seconds");
+            }
+        });
+		
 		JOptionPaneMultiInput j = new JOptionPaneMultiInput();
 		j.main(null);
 		
