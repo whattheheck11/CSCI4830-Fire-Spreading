@@ -1,28 +1,70 @@
+/*
+ * Chase Heck and Clint Olsen
+ * ECEN 4313/CSCI 4830: Concurrent Programming
+ * Final Project: The Simulation of Fire Spreading
+ * Class Description: This class defines the map on which the fire will propagate. Functionality includes the
+ * determination of fire spread direction per thread, as well as the probabilistic considerations made in regards to
+ * wind and humidity
+ */
+
+//import needed libraries
 import java.util.Random;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseEvent;
-
 import java.util.concurrent.locks.Lock;
-
 import java.util.concurrent.locks.ReentrantLock;
-
 import javax.swing.JFrame;
 
 
 public class Map extends JPanel implements MouseListener{
-	
 	//Declare JPanel for GUI
 	static JFrame frame = new JFrame("Map");
 	
+	//map size parameters
+    public static final int PREFERRED_GRID_SIZE_PIXELS = 10; //pixel height and with for tree and non-tree display cells
+	public int rows;
+	public int columns;
+	public int perimeterNodes;
+
+	
+	//Environmental factors
+	public char wind;
+	public int humidity;
+	boolean windExists;
+	int treeDensity;
+	public int probBurnOp = 100;
+	public int probBurnSide = 70;
+
+	//keeps track of first call to start propagation to initiate timing
+	private boolean firstCall;
+	
+	//map definition: array of FireNodes
+	private FireNode m[][];
+	public FireNode epicenter; //start cell of fire
+		
+	Random rand = new Random(); //variable used for probabilistic factors
+
+	//lock for preventing  unnecessary thread generation
+	static Lock l = new ReentrantLock();
+	
+	 //locks timing variables
+	static Lock timeLock = new ReentrantLock();
+	
+	//benchmarking variables
+	public static long last = System.currentTimeMillis();
+	public static long total;
+	public static int counter;
+
+
+	//Allows the user to click any location on the map to indicate where the fire should start
 	@Override
 	public void mouseClicked(MouseEvent e) {
 	    int x = e.getX();
 	    int y = e.getY();
 	    startFire(x/PREFERRED_GRID_SIZE_PIXELS,y/PREFERRED_GRID_SIZE_PIXELS);
 	    startPropagation();
-	    System.out.println("Mouse Clicked at X: " + x + " - Y: " + y);
 	}
 	@Override
 	public void mouseEntered(MouseEvent e) {
@@ -39,41 +81,12 @@ public class Map extends JPanel implements MouseListener{
 	public void mouseReleased(MouseEvent e) {
 	}
 	
-    public static final int PREFERRED_GRID_SIZE_PIXELS = 10;
-
-
-	public int rows;
-
-	public int columns;
-	
-	public char wind;
-	
-	public int humidity;
-	
-	boolean windExists;
-
-	public int perimeterNodes;
-
-	private FireNode m[][];
-
-	public FireNode epicenter;
-		
-	int treeDensity;
-
-	Random rand = new Random();
-
-	static Lock l = new ReentrantLock();
-	
-	public int probBurnOp = 100;
-
-	public int probBurnSide = 70;
-
-
 	//constructor
-
 	public Map(int height, int width, int density, char windDir, char getHumidity){
 		
         addMouseListener(this); //for mouse click events
+        
+        firstCall = true;
         
         wind = windDir;
 
@@ -110,24 +123,21 @@ public class Map extends JPanel implements MouseListener{
 				humidity -= 50;
 			}
 		}
-
+        //generate a random map based on the tree density
 		for(int i = 0; i < rows; i ++){
 
 			for(int j = 0; j < columns; j++){
 
 				//generate new node
-
 				m[i][j] = new FireNode();
 				m[i][j].row = i;
 				m[i][j].col = j;
 
 				
 				//determine whether this node houses a tree based on given density
-
 				int n = rand.nextInt(100)+1;
 
 				//Few Trees
-
 				if(treeDensity == 1){
 
 					if(n > 15){
@@ -143,7 +153,6 @@ public class Map extends JPanel implements MouseListener{
 				}
 
 				//Many trees
-
 				else if(treeDensity == 2){
 
 					if(n > 10){
@@ -159,7 +168,6 @@ public class Map extends JPanel implements MouseListener{
 				}
 
 				//Lotta Trees
-
 				else if(treeDensity == 3){
 
 					if(n > 5){
@@ -174,11 +182,10 @@ public class Map extends JPanel implements MouseListener{
 
 				}
 
-				//default density upon invalid input
-
+				//default density upon invalid input (2)
 				else{
 
-					if(n > 50){
+					if(n > 10){
 
 						m[i][j].hasTree = true;
 						m[i][j].c = new Color(0,255,0); //Green for a Tree
@@ -193,7 +200,7 @@ public class Map extends JPanel implements MouseListener{
 			}
 		}
 		
-		//Initial Graphics screen setup
+		//Initial Graphics screen setup with JFrame
 		int preferredWidth = columns * PREFERRED_GRID_SIZE_PIXELS;
 		int preferredHeight = rows * PREFERRED_GRID_SIZE_PIXELS;
 		setPreferredSize(new Dimension(preferredWidth, preferredHeight));
@@ -202,7 +209,7 @@ public class Map extends JPanel implements MouseListener{
         frame.pack();
         frame.setVisible(true);
 
-		//establish pointer connections to acknowledge edge cases
+		//establish pointer connections between all nodes to acknowledge edge cases
 		linker();
 
 	}
@@ -212,17 +219,34 @@ public class Map extends JPanel implements MouseListener{
 	public void startFire(int row, int column){
 		m[row][column].onFire = true;
 		epicenter = m[row][column];
+		m[row][column].c  = new Color(255,0,0); //Orange red for fire
+		frame.invalidate();
+		frame.validate();
+		frame.repaint();
 	}
 	
+	//indicates where the thread is starting its burn
 	public void fireUpdate(FireNode current){
 		epicenter = current;
 	}
 	
 	public void startPropagation(){
+		//start timing
+		if(firstCall == true){
+        	last = System.currentTimeMillis();
+        	firstCall = false;
+		}
         FireNode current = epicenter;
-    
+        
+        /*Here the thread will loop through each possible direction and based on the current status of the node, wind
+        * humidity, and locked status will determine its next burn. It is possible for the thread not to burn at all
+        * before exiting
+        */
+        
         //0:north 1:west 2:south 3:east       
         for (int i = 0; i < 4; i++){
+        	
+        	//check north
             if(i == 0 && current.north != null && current.north.hasTree == true && current.north.onFire == false){
                         
             	//generate random number for the wind influence
@@ -251,7 +275,7 @@ public class Map extends JPanel implements MouseListener{
                     	}finally{
                     		//current.north.unlock();
                     	}
-		                        		                    
+		                //creates a new thread to start burning at this spot    		                    
                     	ThreadNode tn = new ThreadNode(current.north, this);
                     	tn.start();
                     }
@@ -276,7 +300,7 @@ public class Map extends JPanel implements MouseListener{
                         	} finally{
                         		//current.north.unlock();
                         	}
-                            		                  
+    		                //creates a new thread to start burning at this spot    		                                  
 		                    ThreadNode tn = new ThreadNode(current.north, this);
 		                    tn.start();
                     	}
@@ -303,7 +327,7 @@ public class Map extends JPanel implements MouseListener{
                         	}finally{
                         		//current.north.unlock();
                         	}
-                        		
+    		                //creates a new thread to start burning at this spot    		                    
                         	ThreadNode tn = new ThreadNode(current.north, this);
                         	tn.start();
                         }
@@ -331,14 +355,15 @@ public class Map extends JPanel implements MouseListener{
 							}finally{
 								//current.north.unlock();
 							}
-							 
+			                //creates a new thread to start burning at this spot    		                    
 							ThreadNode tn = new ThreadNode(current.north, this);
 							tn.start();
 						}
 					}
 				}
             }
-                
+            
+        	//check west
             else if(i == 1 && current.west != null && current.west.hasTree == true && current.west.onFire == false){
                 
                 int n = rand.nextInt(200)+1;
@@ -363,6 +388,7 @@ public class Map extends JPanel implements MouseListener{
 								}finally{
 									//current.west.unlock();
 								}
+				                //creates a new thread to start burning at this spot    		                    
 								ThreadNode tn = new ThreadNode(current.west, this);
 								tn.start();
 							}
@@ -389,7 +415,7 @@ public class Map extends JPanel implements MouseListener{
 		                		}finally{
 		                			//current.west.unlock();
 		                		}
-		                     
+		                		//creates a new thread to start burning at this spot
 		                        ThreadNode tn = new ThreadNode(current.west, this);
 		                        tn.start();
 			                }
@@ -416,6 +442,7 @@ public class Map extends JPanel implements MouseListener{
 		                    	}finally{
 		                    		//current.west.unlock();
 		                    	}
+		                    	//creates a new thread to start burning at this spot
 		                    	ThreadNode tn = new ThreadNode(current.west, this);
 		                    	tn.start();
 		                    }
@@ -442,14 +469,15 @@ public class Map extends JPanel implements MouseListener{
 								}finally{
 									//current.west.unlock();
 								}
-								
+								//creates a new thread to start burning at this spot
 								ThreadNode tn = new ThreadNode(current.west, this);
 								tn.start();
 							}
 						}
 	                }
             	} 
-        
+            
+        //check south
         else if(i == 2 && current.south != null && current.south.hasTree == true && current.south.onFire == false){
         	
             int n = rand.nextInt(200)+1;
@@ -473,7 +501,8 @@ public class Map extends JPanel implements MouseListener{
 							
 						}finally{
 							//current.south.unlock();
-						}          
+						}     
+						//creates a new thread to start burning at this spot
 						ThreadNode tn = new ThreadNode(current.south, this);
 						tn.start();
 					}
@@ -500,7 +529,7 @@ public class Map extends JPanel implements MouseListener{
                     	}finally{
                     		//current.south.unlock();
                     	}
-                        
+                    	//creates a new thread to start burning at this spot
                     	ThreadNode tn = new ThreadNode(current.south, this);
                     	tn.start();
                     }
@@ -527,7 +556,7 @@ public class Map extends JPanel implements MouseListener{
                     	}finally{
                     		//current.south.unlock();
                     	}
-                        
+                    	//creates a new thread to start burning at this spot
                     	ThreadNode tn = new ThreadNode(current.south, this);
                     	tn.start();
                     }
@@ -553,7 +582,7 @@ public class Map extends JPanel implements MouseListener{
 						}finally{
 							//current.south.unlock();
 						}
-						 
+						//creates a new thread to start burning at this spot
 						ThreadNode tn = new ThreadNode(current.south, this);
 						tn.start();
 					}
@@ -561,6 +590,7 @@ public class Map extends JPanel implements MouseListener{
             }
         }
             
+        //check east
 	    else if(i == 3 && current.east != null && current.east.hasTree == true && current.east.onFire == false){
 	            
 	            int n = rand.nextInt(200)+1;
@@ -584,7 +614,7 @@ public class Map extends JPanel implements MouseListener{
 							}finally{
 								//current.east.unlock();
 							}
-						
+							//creates a new thread to start burning at this spot
 							ThreadNode tn = new ThreadNode(current.east, this);
 							tn.start();
 						}
@@ -611,7 +641,7 @@ public class Map extends JPanel implements MouseListener{
         	            	}finally{
         	            		//current.east.unlock();
         	            	}
-                        
+        	            	//creates a new thread to start burning at this spot
                         ThreadNode tn = new ThreadNode(current.east, this);
                         tn.start();
         	            }
@@ -636,7 +666,7 @@ public class Map extends JPanel implements MouseListener{
         	            	}finally{
         	            		//current.east.unlock();
         	            	}
-                        
+        	            	//creates a new thread to start burning at this spot
         	            	ThreadNode tn = new ThreadNode(current.east, this);
         	            	tn.start();
         	            }
@@ -662,17 +692,23 @@ public class Map extends JPanel implements MouseListener{
 							}finally{
 								//current.east.unlock();
 							}
-						
+							//creates a new thread to start burning at this spot
 							ThreadNode tn = new ThreadNode(current.east, this);
 							tn.start();
 						}
 					}
                 }
 	    	}       
-	    }	    
+	    }
+	    timeLock.lock();
+        try {
+        	total += (System.currentTimeMillis() - last);
+        	last = System.currentTimeMillis();
+        	counter++;
+        }finally {timeLock.unlock();}	    
 	}
 
-	//prints a 2D representation of the map
+	//prints a 2D representation of the map (pre-JFrame graphics method)
 	public void printTreeMap(){
 
 		for(int i = 0; i < rows; i++){
@@ -704,11 +740,11 @@ public class Map extends JPanel implements MouseListener{
 		}
 
 		System.out.println();
-
 		System.out.println();
 
 	}
 	
+	//paints the current colors of nodes in the map
     @Override
     public void paintComponent(Graphics g) {
         // Important to call super class method
@@ -741,6 +777,8 @@ public class Map extends JPanel implements MouseListener{
 		}
 	}
 	
+	//links together all of the perimeters nodes of a given node to allow for traversal during the propagation
+	// Also used to eliminate null pointer exceptions on edges of map.
 	private void linker(){
 
 		for(int i = 0; i < rows; i++){

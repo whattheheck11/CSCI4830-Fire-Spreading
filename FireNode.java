@@ -1,3 +1,10 @@
+/*
+ * Chase Heck and Clint Olsen
+ * ECEN 4313/CSCI 4830: Concurrent Programming
+ * Final Project: The Simulation of Fire Spreading
+ * Class Description: This class is the definition of the FireNode objects that make up each element of the map. 
+ * Each node holds values that other threads use to determine its propagation direction.
+ */
 //Import needed libraries
 import java.awt.Color;
 import java.util.concurrent.locks.Lock;
@@ -14,7 +21,6 @@ public class FireNode {
 	Color c;
 	
 	Boolean onFire;
-	int probabilityOfCatchingFire;
 	boolean hasTree;
 	public Lock l;
 
@@ -24,6 +30,7 @@ public class FireNode {
 		l = new ReentrantLock();
 	}
 	
+	//locking to prevent the generation of unnecessary threads.
 	public void lock(){
 		l.lock();
 	}
