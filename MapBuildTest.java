@@ -32,7 +32,6 @@ public class MapBuildTest implements Runnable{
 	//main test function
 	public static void main(String args[]) {
 		
-		//shutdown hook that displays the total runtime and threads generated on program exit
 		Runtime.getRuntime().addShutdownHook(new Thread() {
             public void run() {
                 System.out.println((float)m.total/(float)1000 + " seconds");
@@ -40,7 +39,6 @@ public class MapBuildTest implements Runnable{
             }
         });
 		
-		//JPanel to display menu for user input
 		JOptionPaneMultiInput j = new JOptionPaneMultiInput();
 		j.main(null);
 		
